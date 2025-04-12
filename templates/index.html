@@ -101,7 +101,7 @@
     }
 
     .result-box {
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #c0a9f3, #a3c8f9); /* Even lighter gradient background */
       border-radius: 12px;
       padding: 20px;
       width: 100%;
@@ -111,6 +111,9 @@
       animation: slideUp 0.8s ease forwards;
       transition: transform 0.3s ease;
     }
+
+
+
 
     .result-box:hover {
       transform: translateY(-5px);
@@ -142,15 +145,15 @@
     document.getElementById("queryInput").addEventListener("keypress", function (e) {
       if (e.key === "Enter") submitQuery(e);
     });
-
+  
     async function submitQuery(e) {
       const query = document.getElementById("queryInput").value;
       const resultBox = document.getElementById("resultBox");
       const button = document.getElementById("searchBtn");
       const container = document.getElementById("mainContainer");
-
+  
       resultBox.innerHTML = "";
-
+  
       // Ripple animation
       if (e && e.target === button) {
         const circle = document.createElement("span");
@@ -161,49 +164,41 @@
         button.appendChild(circle);
         setTimeout(() => circle.remove(), 600);
       }
-
+  
       // Animate layout shift to top
       container.classList.add("to-top");
-
+  
       // Loading state
       button.disabled = true;
       button.innerText = "Searching...";
-
+  
       try {
         const response = await fetch("/query", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query })
         });
-
+  
         if (!response.ok) throw new Error("Request failed");
-
+  
         const data = await response.json();
-
+  
         if (data.results && data.results.length > 0) {
           data.results.forEach((item, i) => {
             const div = document.createElement("div");
             div.classList.add("result-box");
             div.style.animationDelay = `${i * 150}ms`;
-
+  
             const name = item.name || item.scheme_name || item.fund_name || item.shortName || "No name";
             const category = item.category || "N/A";
-            const subcategory = item.subcategory || "N/A";
-            const fundType = item.fund_type || "N/A";
             const sector = item.sector || "N/A";
             const industry = item.industry || "N/A";
-            const amc = item.amc || item.company_name || "N/A";
-            const source = item.source || "unknown";
-
+  
             div.innerHTML = `
               <strong>${i + 1}. ${name}</strong><br>
               Category: ${category}<br>
-              Subcategory: ${subcategory}<br>
-              Fund Type: ${fundType}<br>
               Sector: ${sector}<br>
               Industry: ${industry}<br>
-              AMC: ${amc}<br>
-              <em>Source: ${source}</em>
             `;
             resultBox.appendChild(div);
           });
@@ -218,5 +213,6 @@
       }
     }
   </script>
+  
 </body>
 </html>
