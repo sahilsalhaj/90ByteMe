@@ -1,0 +1,11 @@
+flask
+sentence-transformers
+pandas
+scikit-learn
+gunicorn
+transformers
+accelerate
+peft
+optimum
+faiss-cpu
+fuzzywuzzy

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Find My Fund 🔍</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Find Indian mutual funds, securities or ETFs instantly using smart search.">
+  <style>
+    body {
+      background-color: #121212;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      color: #00e5ff;
+    }
+
+    label {
+      display: none;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      max-width: 500px;
+      padding: 12px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      background-color: #1f1f1f;
+      color: #fff;
+      outline: none;
+    }
+
+    button {
+      padding: 12px 25px;
+      font-size: 16px;
+      background: linear-gradient(135deg, #00e5ff, #00bcd4);
+      color: #000;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #00bcd4, #00e5ff);
+    }
+
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(0);
+      animation: ripple 0.6s linear;
+      pointer-events: none;
+    }
+
+    @keyframes ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    .result {
+      margin-top: 30px;
+      width: 90%;
+      max-width: 600px;
+      text-align: left;
+      animation: fadeIn 0.6s ease-in;
+    }
+
+    .result-box {
+      background-color: #1f1f1f;
+      border-radius: 10px;
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transform: translateY(10px);
+      animation: slideUp 0.3s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    em {
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Find My Fund</h1>
+  <label for="queryInput">Search Query</label>
+  <input type="text" id="queryInput" placeholder="Type something like 'icici infra'..." />
+  <br>
+  <button onclick="submitQuery(event)" id="searchBtn">Search</button>
+
+  <div class="result" id="resultBox"></div>
+
+  <script>
+document.getElementById("queryInput").addEventListener("keypress", function (e) {
+  if (e.key === "Enter") submitQuery(e);
+});
+
+async function submitQuery(e) {
+  const query = document.getElementById("queryInput").value;
+  const resultBox = document.getElementById("resultBox");
+  const button = document.getElementById("searchBtn");
+
+  resultBox.innerHTML = "";
+
+  // Ripple effect
+  if (e && e.target === button) {
+    const circle = document.createElement("span");
+    circle.classList.add("ripple");
+    const rect = button.getBoundingClientRect();
+    circle.style.left = `${e.clientX - rect.left}px`;
+    circle.style.top = `${e.clientY - rect.top}px`;
+    button.appendChild(circle);
+    setTimeout(() => circle.remove(), 600);
+  }
+
+  // Loading state
+  button.disabled = true;
+  button.innerText = "Searching...";
+
+  try {
+    const response = await fetch("/query", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query })
+    });
+
+    if (!response.ok) throw new Error("Request failed");
+
+    const data = await response.json();
+
+    if (data.results && data.results.length > 0) {
+      data.results.forEach((item, i) => {
+        const div = document.createElement("div");
+        div.classList.add("result-box");
+        div.style.animationDelay = `${i * 100}ms`;
+
+        // Use the fund name, which is the "name" field
+        const name = item.name || item.scheme_name || item.fund_name || item.shortName || "No name";
+        const category = item.category || "N/A";
+        const subcategory = item.subcategory || "N/A";
+        const fundType = item.fund_type || "N/A";
+        const sector = item.sector || "N/A";
+        const industry = item.industry || "N/A";
+        const amc = item.amc || item.company_name || "N/A";
+        const source = item.source || "unknown";  // Get the source
+
+        // Add the source to the HTML content
+        div.innerHTML = `
+          <strong>${i + 1}. ${name}</strong><br>
+          Category: ${category}<br>
+          Subcategory: ${subcategory}<br>
+          Fund Type: ${fundType}<br>
+          Sector: ${sector}<br>
+          Industry: ${industry}<br>
+          AMC: ${amc}<br>
+          <em>Source: ${source}</em>  <!-- Display source info -->
+        `;
+        resultBox.appendChild(div);
+      });
+    } else {
+      resultBox.innerHTML = "<em>No results found.</em>";
+    }
+  } catch (err) {
+    resultBox.innerHTML = "<em>Something went wrong. Please try again.</em>";
+  } finally {
+    button.disabled = false;
+    button.innerText = "Search";
+  }
+}
+
+
+  </script>
+  
+  
+</body>
+</html>

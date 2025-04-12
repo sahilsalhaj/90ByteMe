@@ -1,0 +1,10 @@
+data/
+env/
+.env
+__pycache__/
+metadata_etf.json
+metadata_mf.json
+metadata_stocks.json
+faiss_etf.index
+faiss_mf.index
+faiss_stocks.index
